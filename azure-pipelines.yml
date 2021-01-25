@@ -19,7 +19,6 @@ variables:
 
 stages:
   - stage: test
-    enabled: false
     displayName: 'Run Tests'
     jobs:
       - job: runTests
@@ -29,6 +28,7 @@ stages:
               docker-compose down
               docker-compose build --pull
               docker-compose run --rm tests
+            enabled: false
 
   - stage: deploy
     displayName: 'Deploy'
