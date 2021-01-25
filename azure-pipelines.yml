@@ -1,0 +1,49 @@
+pr: none
+trigger:
+  batch: true
+  branches:
+    include:
+      - '*'
+  tags:
+    include:
+      - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: isTaggedBuild
+    value: ${{ startsWith(variables['Build.SourceBranch'],'refs/tags/') }}
+  - name: imageTag
+    value: ${{ replace(variables['Build.SourceBranch'],'refs/tags/','') }}
+
+stages:
+  - stage: test
+    enabled: false
+    displayName: 'Run Tests'
+    jobs:
+      - job: runTests
+        displayName: 'Run Tests'
+        steps:
+          - script: |
+              docker-compose down
+              docker-compose build --pull
+              docker-compose run --rm tests
+
+  - stage: deploy
+    displayName: 'Deploy'
+    jobs:
+      - job: deploy
+        displayName: 'Deploy to DEV'
+        condition: and(succeeded(), eq(variables['isTaggedBuild'], 'true'))
+        steps:
+          - script: |
+              docker build . -t ${APP_IMAGE}
+              ./deploy.sh
+            env:
+              APP_IMAGE: $(APP_IMAGE)
+              KBC_DEVELOPERPORTAL_APP: $(KBC_DEVELOPERPORTAL_APP)
+              KBC_DEVELOPERPORTAL_PASSWORD: $(KBC_DEVELOPERPORTAL_PASSWORD)
+              KBC_DEVELOPERPORTAL_USERNAME: $(KBC_DEVELOPERPORTAL_USERNAME)
+              KBC_DEVELOPERPORTAL_VENDOR: $(KBC_DEVELOPERPORTAL_VENDOR)
+              IMAGE_TAG: $(imageTag)
