@@ -1,8 +1,13 @@
-version: '2'
+version: '3'
 services:
+  # for development purposes
+  tests: &tests
+    build: .
+    command: ['composer', 'ci']
+
   dev:
     build: .
-    image: keboola/my-component
+    image: keboola/processor-strip-null
     volumes:
       - ./:/code
       - ./data:/data
