@@ -1,7 +1,3 @@
 {
-	"parameters": {
-		"source_encoding": "ISO8859-2",
-		"target_encoding": "UTF-8",
-		"on_error": "transliterate"
-	}
+	"parameters": {}
 }

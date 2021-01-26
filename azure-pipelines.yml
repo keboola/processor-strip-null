@@ -28,7 +28,6 @@ stages:
               docker-compose down
               docker-compose build --pull
               docker-compose run --rm tests
-            enabled: false
 
   - stage: deploy
     displayName: 'Deploy'

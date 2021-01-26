@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace Keboola\ProcessorIconv;
 
+use Exception;
 use Keboola\Component\BaseComponent;
-use Keboola\Component\UserException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
 
 class Component extends BaseComponent
 {
-    public function run(): void
+    protected function run(): void
     {
         /** @var Config $config */
         $config = $this->getConfig();
@@ -26,11 +24,11 @@ class Component extends BaseComponent
         $this->processDir($finder, 'files', $config);
     }
 
-    private function processDir(Finder $finder, string $dir, Config $config) : void
+    private function processDir(Finder $finder, string $dir, Config $config): void
     {
         $fs = new Filesystem();
         foreach ($finder as $inFile) {
-            if ($inFile->getExtension() == 'manifest') {
+            if ($inFile->getExtension() === 'manifest') {
                 // copy manifest without modification
                 $fs->copy($inFile->getPathname(), $this->getDataDir() . "/out/$dir/" . $inFile->getFilename());
             } else {
@@ -42,10 +40,16 @@ class Component extends BaseComponent
         }
     }
 
-    private function processFile(SplFileInfo $inFile, string $destinationFileName, Config $config) : void
+    private function processFile(SplFileInfo $inFile, string $destinationFileName, Config $config): void
     {
         $source = fopen($inFile->getPathname(), 'r');
         $destination = fopen($destinationFileName, 'a');
+        if ($source === false) {
+            throw new Exception(sprintf('Failed to open source file: "%s"', $inFile->getPathname()));
+        }
+        if ($destination === false) {
+            throw new Exception(sprintf('Failed to open destination file: "%s"', $destinationFileName));
+        }
         while ($buff = fgets($source)) {
             $buff = str_replace("\0", '', $buff);
             fputs($destination, $buff);
